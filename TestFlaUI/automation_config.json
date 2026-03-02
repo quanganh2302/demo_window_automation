@@ -1,0 +1,8 @@
+{
+  "WonoTextBoxId": "WonoField",
+  "CustomInputTextBoxId": "tbCS",
+  "CompletedQuantityTextBoxId": "CompletedCountField",
+  "PackageStylePanelId": "PackingTypeGroup",
+  "DataGridViewId": "dataGridView3",
+  "SendButtonId": ""
+}
