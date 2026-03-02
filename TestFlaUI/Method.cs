@@ -62,8 +62,11 @@ public class Method
             var mainWindow = application.GetMainWindow(_automation);
             Console.WriteLine("✅ Đã kết nối với cửa sổ chính");
 
-            // Không cần restore/focus - nhập trực tiếp qua automation
-            Console.WriteLine("💡 Đang nhập dữ liệu ngầm (không cần bring to front)...");
+            // Restore window nếu bị minimize (cần thiết để automation hoạt động)
+            // Nhưng KHÔNG bring to front - chỉ restore
+            RestoreWindowIfMinimized(mainWindow);
+
+            Console.WriteLine("💡 Đang nhập dữ liệu (không bring to front)...");
 
             // Bước 1: Điền các TextBox
             try
@@ -156,6 +159,36 @@ public class Method
         }
     }
 
+    private void RestoreWindowIfMinimized(Window window)
+    {
+        try
+        {
+            var handle = window.Properties.NativeWindowHandle.ValueOrDefault;
+
+            if (handle != IntPtr.Zero)
+            {
+                // Chỉ restore nếu bị minimize
+                if (IsIconic(handle))
+                {
+                    Console.WriteLine("🔄 Window đang bị minimize, đang restore...");
+                    ShowWindow(handle, SW_RESTORE);
+                    Thread.Sleep(500);
+                    Console.WriteLine("✅ Đã restore window (không bring to front)");
+                }
+                else
+                {
+                    Console.WriteLine("✅ Window đã sẵn sàng");
+                }
+
+                // KHÔNG gọi SetForegroundWindow - để window ở background
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Không thể kiểm tra window state: {ex.Message}");
+        }
+    }
+
     private void RestoreAndFocusWindow(Window window)
     {
         try
@@ -191,7 +224,10 @@ public class Method
 
     private void FillTextBox(AutomationElement window, string automationId, string value)
     {
-        if (string.IsNullOrEmpty(automationId)) return;
+        if (string.IsNullOrEmpty(automationId))
+        {
+            throw new Exception("AutomationId không được để trống!");
+        }
 
         var textBox = window.FindFirstDescendant(_cf.ByAutomationId(automationId))?.AsTextBox();
         if (textBox != null)
@@ -201,147 +237,133 @@ public class Method
         }
         else
         {
-            Console.WriteLine($"Không tìm thấy TextBox với AutomationId: {automationId}");
+            throw new Exception($"Không tìm thấy TextBox với AutomationId: '{automationId}'. Vui lòng dùng Inspect để kiểm tra AutomationID đúng.");
         }
     }
 
     private void SelectRadioButton(AutomationElement window, string panelAutomationId, string radioButtonText)
     {
-        if (string.IsNullOrEmpty(panelAutomationId)) return;
-
-        try
+        if (string.IsNullOrEmpty(panelAutomationId))
         {
-            var panel = window.FindFirstDescendant(_cf.ByAutomationId(panelAutomationId));
-            if (panel != null)
-            {
-                // Tìm RadioButton theo text
-                var radioButton = panel.FindFirstDescendant(_cf.ByName(radioButtonText))?.AsRadioButton();
-                if (radioButton != null && !radioButton.IsChecked)
-                {
-                    radioButton.Click();
-                    Thread.Sleep(300);
-                }
-                else if (radioButton == null)
-                {
-                    Console.WriteLine($"Không tìm thấy RadioButton: {radioButtonText}");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"Không tìm thấy Panel với AutomationId: {panelAutomationId}");
-            }
+            throw new Exception("Panel AutomationId không được để trống!");
         }
-        catch (Exception ex)
+
+        var panel = window.FindFirstDescendant(_cf.ByAutomationId(panelAutomationId));
+        if (panel == null)
         {
-            Console.WriteLine($"Lỗi khi chọn RadioButton: {ex.Message}");
+            throw new Exception($"Không tìm thấy Panel với AutomationId: '{panelAutomationId}'. Vui lòng dùng Inspect để kiểm tra.");
+        }
+
+        // Tìm RadioButton theo text
+        var radioButton = panel.FindFirstDescendant(_cf.ByName(radioButtonText))?.AsRadioButton();
+        if (radioButton == null)
+        {
+            throw new Exception($"Không tìm thấy RadioButton với tên: '{radioButtonText}' trong Panel '{panelAutomationId}'");
+        }
+
+        if (!radioButton.IsChecked)
+        {
+            radioButton.Click();
+            Thread.Sleep(300);
         }
     }
 
     private void FillDataGridView(AutomationElement window, string dataGridViewId, List<GridRowData> gridData)
     {
-        if (string.IsNullOrEmpty(dataGridViewId) || gridData.Count == 0) return;
-
-        try
+        if (string.IsNullOrEmpty(dataGridViewId))
         {
-            var dataGrid = window.FindFirstDescendant(_cf.ByAutomationId(dataGridViewId))?.AsDataGridView();
-            if (dataGrid != null)
-            {
-                Console.WriteLine($"Tìm thấy DataGridView, bắt đầu điền {gridData.Count} dòng...");
+            throw new Exception("DataGridView AutomationId không được để trống!");
+        }
 
-                for (int i = 0; i < gridData.Count; i++)
+        if (gridData.Count == 0)
+        {
+            Console.WriteLine("⚠️ Không có dữ liệu để điền vào DataGridView");
+            return;
+        }
+
+        var dataGrid = window.FindFirstDescendant(_cf.ByAutomationId(dataGridViewId))?.AsDataGridView();
+        if (dataGrid == null)
+        {
+            throw new Exception($"Không tìm thấy DataGridView với AutomationId: '{dataGridViewId}'. Vui lòng dùng Inspect để kiểm tra.");
+        }
+
+        Console.WriteLine($"Tìm thấy DataGridView, bắt đầu điền {gridData.Count} dòng...");
+
+        for (int i = 0; i < gridData.Count; i++)
+        {
+            var rowData = gridData[i];
+            Console.WriteLine($"  Đang điền dòng {i + 1}: Số lượng={rowData.PackageQuantity}, Số lô={rowData.LotNumber}");
+
+            var rows = dataGrid.Rows;
+
+            // Đảm bảo có đủ row
+            if (i >= rows.Length)
+            {
+                Console.WriteLine($"  ⚠️ Không đủ dòng trong DataGridView (có {rows.Length} dòng, cần {gridData.Count} dòng)");
+                break;
+            }
+
+            var row = rows[i];
+            var cells = row.Cells;
+
+            // Nhập trực tiếp vào cell (không dùng keyboard)
+            if (cells.Length > 0)
+            {
+                try
                 {
-                    var rowData = gridData[i];
-                    Console.WriteLine($"  Đang điền dòng {i + 1}: Số lượng={rowData.PackageQuantity}, Số lô={rowData.LotNumber}");
-
-                    try
+                    // Thử dùng ValuePattern để set value trực tiếp
+                    var cell1 = cells[0];
+                    if (cell1.Patterns.Value.IsSupported)
                     {
-                        var rows = dataGrid.Rows;
-
-                        // Đảm bảo có đủ row
-                        if (i >= rows.Length)
+                        cell1.Patterns.Value.Pattern.SetValue(rowData.PackageQuantity.ToString());
+                    }
+                    else
+                    {
+                        // Fallback: dùng Text property
+                        var textBox = cell1.AsTextBox();
+                        if (textBox != null)
                         {
-                            Console.WriteLine($"  ⚠️ Không đủ dòng trong DataGridView (có {rows.Length} dòng)");
-                            break;
-                        }
-
-                        var row = rows[i];
-                        var cells = row.Cells;
-
-                        // Nhập trực tiếp vào cell (không dùng keyboard)
-                        if (cells.Length > 0)
-                        {
-                            try
-                            {
-                                // Thử dùng ValuePattern để set value trực tiếp
-                                var cell1 = cells[0];
-                                if (cell1.Patterns.Value.IsSupported)
-                                {
-                                    cell1.Patterns.Value.Pattern.SetValue(rowData.PackageQuantity.ToString());
-                                }
-                                else
-                                {
-                                    // Fallback: dùng Text property
-                                    var textBox = cell1.AsTextBox();
-                                    if (textBox != null)
-                                    {
-                                        textBox.Text = rowData.PackageQuantity.ToString();
-                                    }
-                                }
-                                Thread.Sleep(100);
-                                Console.WriteLine($"    ✅ Đã nhập số lượng: {rowData.PackageQuantity}");
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"    ⚠️ Lỗi khi nhập cột 1: {ex.Message}");
-                            }
-                        }
-
-                        // Nhập cột 2: Số lô
-                        if (cells.Length > 1)
-                        {
-                            try
-                            {
-                                var cell2 = cells[1];
-                                if (cell2.Patterns.Value.IsSupported)
-                                {
-                                    cell2.Patterns.Value.Pattern.SetValue(rowData.LotNumber.ToString());
-                                }
-                                else
-                                {
-                                    var textBox = cell2.AsTextBox();
-                                    if (textBox != null)
-                                    {
-                                        textBox.Text = rowData.LotNumber.ToString();
-                                    }
-                                }
-                                Thread.Sleep(100);
-                                Console.WriteLine($"    ✅ Đã nhập số lô: {rowData.LotNumber}");
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"    ⚠️ Lỗi khi nhập cột 2: {ex.Message}");
-                            }
+                            textBox.Text = rowData.PackageQuantity.ToString();
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"  ❌ Lỗi khi điền dòng {i + 1}: {ex.Message}");
-                        throw;
-                    }
+                    Thread.Sleep(100);
+                    Console.WriteLine($"    ✅ Đã nhập số lượng: {rowData.PackageQuantity}");
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"    ⚠️ Lỗi khi nhập cột 1: {ex.Message}");
+                }
+            }
 
-                Console.WriteLine($"✅ Đã điền {gridData.Count} dòng vào DataGridView");
-            }
-            else
+            // Nhập cột 2: Số lô
+            if (cells.Length > 1)
             {
-                Console.WriteLine($"❌ Không tìm thấy DataGridView với AutomationId: {dataGridViewId}");
+                try
+                {
+                    var cell2 = cells[1];
+                    if (cell2.Patterns.Value.IsSupported)
+                    {
+                        cell2.Patterns.Value.Pattern.SetValue(rowData.LotNumber.ToString());
+                    }
+                    else
+                    {
+                        var textBox = cell2.AsTextBox();
+                        if (textBox != null)
+                        {
+                            textBox.Text = rowData.LotNumber.ToString();
+                        }
+                    }
+                    Thread.Sleep(100);
+                    Console.WriteLine($"    ✅ Đã nhập số lô: {rowData.LotNumber}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"    ⚠️ Lỗi khi nhập cột 2: {ex.Message}");
+                }
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ Lỗi khi điền DataGridView: {ex.Message}");
-            throw;
-        }
+
+        Console.WriteLine($"✅ Đã điền {gridData.Count} dòng vào DataGridView");
     }
 
     private void ClickButton(AutomationElement window, string automationId)

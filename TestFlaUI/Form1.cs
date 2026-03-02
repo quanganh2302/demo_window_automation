@@ -23,6 +23,38 @@ public partial class Form1 : Form
             "Gói giấy",
             "Khác"
         });
+
+        // Thêm button để inspect UI
+        var btnInspect = new Button
+        {
+            Text = "🔍 Inspect Mock_Tomato",
+            Location = new Point(240, 386),
+            Size = new Size(138, 52),
+            BackColor = Color.LightBlue
+        };
+        btnInspect.Click += BtnInspect_Click;
+        Controls.Add(btnInspect);
+    }
+
+    private void BtnInspect_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            AllocConsole();
+            Console.Clear();
+
+            string appPath = @"E:\3_Learn\5_C#\Mock_Tomato\Mock_Tomato\bin\Debug\net10.0-windows\Mock_Tomato.exe";
+
+            Console.WriteLine("Bắt đầu inspect Mock_Tomato...\n");
+            UIInspector.InspectMockTomato(appPath);
+
+            MessageBox.Show("Đã in danh sách AutomationID ra Console!\nKiểm tra cửa sổ console để xem.", 
+                "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private void Dt_CellContentClick(object? sender, DataGridViewCellEventArgs e)
