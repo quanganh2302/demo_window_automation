@@ -3,6 +3,9 @@
   "CustomInputTextBoxId": "tbCS",
   "CompletedQuantityTextBoxId": "CompletedCountField",
   "PackageStylePanelId": "PackingTypeGroup",
+  "ToolMenuName": "Công cụ (T)",
+  "PrinterMenuItemName": "Máy in",
+  "PrinterLabelName": "LABEL_PRINTER (CS)",
   "DataGridViewId": "dataGridView3",
   "SendButtonId": ""
 }

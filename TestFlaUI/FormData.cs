@@ -17,6 +17,7 @@ public class FormData
     public string CustomInput { get; set; } = string.Empty;
     public string CompletedQuantity { get; set; } = string.Empty;
     public string PackageStyle { get; set; } = string.Empty;
+    public string Printer { get; set; } = string.Empty;
     public List<GridRowData> GridData { get; set; } = new List<GridRowData>();
 
     public override string ToString()
@@ -25,6 +26,6 @@ public class FormData
             ? $"\nDữ liệu lưới ({GridData.Count} dòng):\n" + string.Join("\n", GridData)
             : "\nKhông có dữ liệu lưới";
 
-        return $"WOno: {WOno}, Custom Input: {CustomInput}, Completed: {CompletedQuantity}, Style: {PackageStyle}{gridInfo}";
+        return $"WOno: {WOno}, Custom Input: {CustomInput}, Completed: {CompletedQuantity}, Style: {PackageStyle}, Printer: {Printer}{gridInfo}";
     }
 }

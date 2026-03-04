@@ -24,11 +24,18 @@ public partial class Form1 : Form
             "Khác"
         });
 
+        cbPrinter.Items.AddRange(new string[]
+        {
+            "Microsoft Print to PDF",
+            "OneNote (Desktop)",
+            "MF240 Series"
+        });
+
         // Thêm button để inspect UI
         var btnInspect = new Button
         {
             Text = "🔍 Inspect Mock_Tomato",
-            Location = new Point(240, 386),
+            Location = new Point(240, 426),
             Size = new Size(138, 52),
             BackColor = Color.LightBlue
         };
@@ -43,7 +50,7 @@ public partial class Form1 : Form
             AllocConsole();
             Console.Clear();
 
-            string appPath = @"E:\3_Learn\5_C#\Mock_Tomato\Mock_Tomato\bin\Debug\net10.0-windows\Mock_Tomato.exe";
+            string appPath = @"D:\Quang-Anh\2_Personal\Automation_FlaUI\mock_tomato\Mock_Tomato\bin\Debug\net10.0-windows\Mock_Tomato.exe";
 
             Console.WriteLine("Bắt đầu inspect Mock_Tomato...\n");
             UIInspector.InspectMockTomato(appPath);
@@ -94,9 +101,9 @@ public partial class Form1 : Form
         }
 
         SavedData.WOno = tbWono.Text.Trim();
-        SavedData.CustomInput = tbCu.Text.Trim();
         SavedData.CompletedQuantity = tbCom.Text.Trim();
         SavedData.PackageStyle = cbStyle.Text.Trim();
+        SavedData.Printer = cbPrinter.Text.Trim();
 
         SavedData.GridData.Clear();
         foreach (DataGridViewRow row in dt.Rows)
@@ -128,12 +135,16 @@ public partial class Form1 : Form
             try
             {
                 string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "automation_config.json");
-                string appPath = @"E:\3_Learn\5_C#\Mock_Tomato\Mock_Tomato\bin\Debug\net10.0-windows\Mock_Tomato.exe";
+                string appPath = @"D:\Quang-Anh\2_Personal\Automation_FlaUI\mock_tomato\Mock_Tomato\bin\Debug\net10.0-windows\Mock_Tomato.exe";
 
                 // Hiển thị cửa sổ console để xem log
                 AllocConsole();
 
                 AutomationHelper.RunAutomation(SavedData, configPath, appPath);
+
+                // Minimize app đích sau khi điền thành công
+                MinimizeTargetApp(appPath);
+
                 MessageBox.Show("Đã điền dữ liệu vào Mock_Tomato thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -144,8 +155,11 @@ public partial class Form1 : Form
                 {
                     errorMessage += $"\n\nChi tiết: {ex.InnerException.Message}";
                 }
-                MessageBox.Show(errorMessage, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                // Đưa app hiện tại lên trước app đích và hiển thị popup
+                BringCurrentAppToFront();
+                MessageBox.Show(this, errorMessage, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
@@ -153,18 +167,64 @@ public partial class Form1 : Form
     [System.Runtime.InteropServices.DllImport("kernel32.dll")]
     private static extern bool AllocConsole();
 
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    private const int SW_MINIMIZE = 6;
+    private const int SW_RESTORE = 9;
+    private const int SW_SHOW = 5;
+
+    private void MinimizeTargetApp(string appPath)
+    {
+        try
+        {
+            var processName = Path.GetFileNameWithoutExtension(appPath);
+            var processes = System.Diagnostics.Process.GetProcessesByName(processName);
+            foreach (var proc in processes)
+            {
+                if (proc.MainWindowHandle != IntPtr.Zero)
+                {
+                    ShowWindow(proc.MainWindowHandle, SW_MINIMIZE);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Không thể minimize app đích: {ex.Message}");
+        }
+    }
+
+    private void BringCurrentAppToFront()
+    {
+        try
+        {
+            var handle = Handle;
+            ShowWindow(handle, SW_RESTORE);
+            SetForegroundWindow(handle);
+            Activate();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Không thể đưa app hiện tại lên trước: {ex.Message}");
+        }
+    }
+
     private bool ValidateInputs()
     {
         if (string.IsNullOrWhiteSpace(tbWono.Text))
             return false;
 
-        if (string.IsNullOrWhiteSpace(tbCu.Text))
-            return false;
 
         if (string.IsNullOrWhiteSpace(tbCom.Text))
             return false;
 
         if (string.IsNullOrWhiteSpace(cbStyle.Text))
+            return false;
+
+        if (string.IsNullOrWhiteSpace(cbPrinter.Text))
             return false;
 
         return true;

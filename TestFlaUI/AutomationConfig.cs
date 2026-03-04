@@ -5,9 +5,13 @@ namespace TestFlaUI;
 public class AutomationConfig
 {
     public string WonoTextBoxId { get; set; } = string.Empty;
-    public string CustomInputTextBoxId { get; set; } = string.Empty;
     public string CompletedQuantityTextBoxId { get; set; } = string.Empty;
     public string PackageStylePanelId { get; set; } = string.Empty;
+    public string ToolMenuName { get; set; } = "Công cụ (T)";
+    public string PrinterMenuItemName { get; set; } = "Máy in";
+    public string PrinterLabelName { get; set; } = "LABEL_PRINTER (CS)";
+    public string PrinterComboBoxId { get; set; } = "cmb_LABEL_PRINTER_CS";
+    public string PrinterChangeButtonId { get; set; } = "btnChange";
     public string DataGridViewId { get; set; } = string.Empty;
     public string SendButtonId { get; set; } = string.Empty;
 
