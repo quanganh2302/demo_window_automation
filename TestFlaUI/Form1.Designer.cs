@@ -29,6 +29,10 @@ partial class Form1
     private void InitializeComponent()
     {
         panel1 = new Panel();
+        btnCheckPrint = new Button();
+        btnCheckType = new Button();
+        btnCheckCom = new Button();
+        btnCheckWono = new Button();
         tbWono = new TextBox();
         cbStyle = new ComboBox();
         label11 = new Label();
@@ -42,12 +46,22 @@ partial class Form1
         dataGridViewTextBoxColumn2 = new DataGridViewTextBoxColumn();
         dataGridViewTextBoxColumn3 = new DataGridViewTextBoxColumn();
         btSend = new Button();
+        label1 = new Label();
+        tbFindById = new TextBox();
+        btnFindById = new Button();
+        tbFindTest = new TextBox();
+        label2 = new Label();
+        btnFindTest = new Button();
         panel1.SuspendLayout();
         ((System.ComponentModel.ISupportInitialize)dt).BeginInit();
         SuspendLayout();
         // 
         // panel1
         // 
+        panel1.Controls.Add(btnCheckPrint);
+        panel1.Controls.Add(btnCheckType);
+        panel1.Controls.Add(btnCheckCom);
+        panel1.Controls.Add(btnCheckWono);
         panel1.Controls.Add(tbWono);
         panel1.Controls.Add(cbStyle);
         panel1.Controls.Add(label11);
@@ -58,15 +72,51 @@ partial class Form1
         panel1.Controls.Add(tbCom);
         panel1.Dock = DockStyle.Top;
         panel1.Location = new Point(0, 0);
-        panel1.Margin = new Padding(2, 2, 2, 2);
+        panel1.Margin = new Padding(2);
         panel1.Name = "panel1";
-        panel1.Size = new Size(308, 184);
+        panel1.Size = new Size(398, 184);
         panel1.TabIndex = 16;
+        // 
+        // btnCheckPrint
+        // 
+        btnCheckPrint.Location = new Point(315, 131);
+        btnCheckPrint.Name = "btnCheckPrint";
+        btnCheckPrint.Size = new Size(65, 29);
+        btnCheckPrint.TabIndex = 15;
+        btnCheckPrint.Text = "Check";
+        btnCheckPrint.UseVisualStyleBackColor = true;
+        // 
+        // btnCheckType
+        // 
+        btnCheckType.Location = new Point(315, 91);
+        btnCheckType.Name = "btnCheckType";
+        btnCheckType.Size = new Size(65, 29);
+        btnCheckType.TabIndex = 15;
+        btnCheckType.Text = "Check";
+        btnCheckType.UseVisualStyleBackColor = true;
+        // 
+        // btnCheckCom
+        // 
+        btnCheckCom.Location = new Point(315, 51);
+        btnCheckCom.Name = "btnCheckCom";
+        btnCheckCom.Size = new Size(65, 29);
+        btnCheckCom.TabIndex = 15;
+        btnCheckCom.Text = "Check";
+        btnCheckCom.UseVisualStyleBackColor = true;
+        // 
+        // btnCheckWono
+        // 
+        btnCheckWono.Location = new Point(315, 11);
+        btnCheckWono.Name = "btnCheckWono";
+        btnCheckWono.Size = new Size(65, 29);
+        btnCheckWono.TabIndex = 15;
+        btnCheckWono.Text = "Check";
+        btnCheckWono.UseVisualStyleBackColor = true;
         // 
         // tbWono
         // 
         tbWono.Location = new Point(173, 12);
-        tbWono.Margin = new Padding(2, 2, 2, 2);
+        tbWono.Margin = new Padding(2);
         tbWono.Name = "tbWono";
         tbWono.Size = new Size(121, 27);
         tbWono.TabIndex = 2;
@@ -75,7 +125,7 @@ partial class Form1
         // 
         cbStyle.FormattingEnabled = true;
         cbStyle.Location = new Point(173, 93);
-        cbStyle.Margin = new Padding(2, 2, 2, 2);
+        cbStyle.Margin = new Padding(2);
         cbStyle.Name = "cbStyle";
         cbStyle.Size = new Size(121, 28);
         cbStyle.TabIndex = 12;
@@ -96,7 +146,7 @@ partial class Form1
         // 
         cbPrinter.FormattingEnabled = true;
         cbPrinter.Location = new Point(173, 133);
-        cbPrinter.Margin = new Padding(2, 2, 2, 2);
+        cbPrinter.Margin = new Padding(2);
         cbPrinter.Name = "cbPrinter";
         cbPrinter.Size = new Size(121, 28);
         cbPrinter.TabIndex = 14;
@@ -114,7 +164,7 @@ partial class Form1
         labelPrinter.Text = "Máy in";
         // 
         // lbWn
-        //
+        // 
         lbWn.BackColor = SystemColors.ControlDarkDark;
         lbWn.ForeColor = Color.Transparent;
         lbWn.Location = new Point(17, 12);
@@ -140,7 +190,7 @@ partial class Form1
         // tbCom
         // 
         tbCom.Location = new Point(173, 53);
-        tbCom.Margin = new Padding(2, 2, 2, 2);
+        tbCom.Margin = new Padding(2);
         tbCom.Name = "tbCom";
         tbCom.Size = new Size(121, 27);
         tbCom.TabIndex = 5;
@@ -151,11 +201,11 @@ partial class Form1
         dt.Columns.AddRange(new DataGridViewColumn[] { dataGridViewTextBoxColumn1, dataGridViewTextBoxColumn2, dataGridViewTextBoxColumn3 });
         dt.Dock = DockStyle.Top;
         dt.Location = new Point(0, 184);
-        dt.Margin = new Padding(2, 2, 2, 2);
+        dt.Margin = new Padding(2);
         dt.Name = "dt";
         dt.RowHeadersVisible = false;
         dt.RowHeadersWidth = 62;
-        dt.Size = new Size(308, 116);
+        dt.Size = new Size(398, 116);
         dt.TabIndex = 15;
         // 
         // dataGridViewTextBoxColumn1
@@ -185,29 +235,95 @@ partial class Form1
         // 
         // btSend
         // 
-        btSend.Location = new Point(99, 322);
-        btSend.Margin = new Padding(2, 2, 2, 2);
+        btSend.Location = new Point(132, 444);
+        btSend.Margin = new Padding(2);
         btSend.Name = "btSend";
         btSend.Size = new Size(110, 42);
         btSend.TabIndex = 17;
         btSend.Text = "Send";
         btSend.UseVisualStyleBackColor = true;
         // 
+        // label1
+        // 
+        label1.BackColor = SystemColors.ControlDarkDark;
+        label1.ForeColor = Color.Transparent;
+        label1.Location = new Point(17, 322);
+        label1.Margin = new Padding(2, 0, 2, 0);
+        label1.Name = "label1";
+        label1.Padding = new Padding(2);
+        label1.Size = new Size(138, 23);
+        label1.TabIndex = 3;
+        label1.Text = "FindById";
+        // 
+        // tbFindById
+        // 
+        tbFindById.Location = new Point(173, 322);
+        tbFindById.Margin = new Padding(2);
+        tbFindById.Name = "tbFindById";
+        tbFindById.Size = new Size(121, 27);
+        tbFindById.TabIndex = 2;
+        // 
+        // btnFindById
+        // 
+        btnFindById.Location = new Point(315, 321);
+        btnFindById.Name = "btnFindById";
+        btnFindById.Size = new Size(65, 29);
+        btnFindById.TabIndex = 15;
+        btnFindById.Text = "Find";
+        btnFindById.UseVisualStyleBackColor = true;
+        // 
+        // tbFindTest
+        // 
+        tbFindTest.Location = new Point(173, 360);
+        tbFindTest.Margin = new Padding(2);
+        tbFindTest.Name = "tbFindTest";
+        tbFindTest.Size = new Size(121, 27);
+        tbFindTest.TabIndex = 2;
+        // 
+        // label2
+        // 
+        label2.BackColor = SystemColors.ControlDarkDark;
+        label2.ForeColor = Color.Transparent;
+        label2.Location = new Point(17, 360);
+        label2.Margin = new Padding(2, 0, 2, 0);
+        label2.Name = "label2";
+        label2.Padding = new Padding(2);
+        label2.Size = new Size(138, 23);
+        label2.TabIndex = 3;
+        label2.Text = "FindForTest";
+        // 
+        // btnFindTest
+        // 
+        btnFindTest.Location = new Point(315, 359);
+        btnFindTest.Name = "btnFindTest";
+        btnFindTest.Size = new Size(65, 29);
+        btnFindTest.TabIndex = 15;
+        btnFindTest.Text = "Find";
+        btnFindTest.UseVisualStyleBackColor = true;
+        btnFindTest.Click += btnFindTest_Click;
+        // 
         // Form1
         // 
         AutoScaleDimensions = new SizeF(8F, 20F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(308, 388);
+        ClientSize = new Size(398, 497);
         Controls.Add(btSend);
         Controls.Add(dt);
         Controls.Add(panel1);
-        Margin = new Padding(2, 2, 2, 2);
+        Controls.Add(btnFindTest);
+        Controls.Add(btnFindById);
+        Controls.Add(label2);
+        Controls.Add(tbFindTest);
+        Controls.Add(label1);
+        Controls.Add(tbFindById);
+        Margin = new Padding(2);
         Name = "Form1";
         Text = "Form1";
         panel1.ResumeLayout(false);
         panel1.PerformLayout();
         ((System.ComponentModel.ISupportInitialize)dt).EndInit();
         ResumeLayout(false);
+        PerformLayout();
     }
 
     #endregion
@@ -226,4 +342,17 @@ partial class Form1
     private Button btSend;
     private ComboBox cbPrinter;
     private Label labelPrinter;
+    private Button button4;
+    private Button button3;
+    private Button button2;
+    private Button btnCheckWono;
+    private Button btnCheckPrint;
+    private Button btnCheckType;
+    private Button btnCheckCom;
+    private Label label1;
+    private TextBox tbFindById;
+    private Button btnFindById;
+    private TextBox tbFindTest;
+    private Label label2;
+    private Button btnFindTest;
 }

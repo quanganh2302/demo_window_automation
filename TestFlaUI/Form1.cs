@@ -1,8 +1,13 @@
+using Button = System.Windows.Forms.Button;
+using DataGridViewRow = System.Windows.Forms.DataGridViewRow;
+
 namespace TestFlaUI;
 
 public partial class Form1 : Form
 {
     public FormData SavedData { get; private set; }
+
+    const string appPath = @"D:\Quang-Anh\2_Personal\Automation_FlaUI\mock_tomato\Mock_Tomato\bin\Debug\net10.0-windows\Mock_Tomato.exe";
 
     public Form1()
     {
@@ -13,6 +18,15 @@ public partial class Form1 : Form
         dt.CellValidating += Dt_CellValidating;
         dt.CellContentClick += Dt_CellContentClick;
 
+        btnCheckWono.Click += (s, e) => CheckAndHighlight(CheckTarget.WOno, btnCheckWono);
+        btnCheckCom.Click += (s, e) => CheckAndHighlight(CheckTarget.CompletedQuantity, btnCheckCom);
+        btnCheckType.Click += (s, e) => CheckAndHighlight(CheckTarget.PackageStyle, btnCheckType);
+        btnCheckPrint.Click += (s, e) => CheckAndHighlight(CheckTarget.Printer, btnCheckPrint);
+        btnFindById.Click += (s, e) => FindByIdAndHighlight();
+        tbFindById.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) { FindByIdAndHighlight(); e.SuppressKeyPress = true; } };
+        tbFindById.PlaceholderText = "AutomationId...";
+        tbFindTest.PlaceholderText = "Label name...";
+        tbFindTest.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) { btnFindTest_Click(btnFindTest, EventArgs.Empty); e.SuppressKeyPress = true; } };
         dt.AllowUserToAddRows = true;
 
         cbStyle.Items.AddRange(new string[]
@@ -31,37 +45,6 @@ public partial class Form1 : Form
             "MF240 Series"
         });
 
-        // Thêm button để inspect UI
-        var btnInspect = new Button
-        {
-            Text = "🔍 Inspect Mock_Tomato",
-            Location = new Point(240, 426),
-            Size = new Size(138, 52),
-            BackColor = Color.LightBlue
-        };
-        btnInspect.Click += BtnInspect_Click;
-        Controls.Add(btnInspect);
-    }
-
-    private void BtnInspect_Click(object? sender, EventArgs e)
-    {
-        try
-        {
-            AllocConsole();
-            Console.Clear();
-
-            string appPath = @"D:\Quang-Anh\2_Personal\Automation_FlaUI\mock_tomato\Mock_Tomato\bin\Debug\net10.0-windows\Mock_Tomato.exe";
-
-            Console.WriteLine("Bắt đầu inspect Mock_Tomato...\n");
-            UIInspector.InspectMockTomato(appPath);
-
-            MessageBox.Show("Đã in danh sách AutomationID ra Console!\nKiểm tra cửa sổ console để xem.", 
-                "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
     }
 
     private void Dt_CellContentClick(object? sender, DataGridViewCellEventArgs e)
@@ -117,10 +100,10 @@ public partial class Form1 : Form
             {
                 if (int.TryParse(col1, out int qty) && int.TryParse(col2, out int lot))
                 {
-                    SavedData.GridData.Add(new GridRowData 
-                    { 
-                        PackageQuantity = qty, 
-                        LotNumber = lot 
+                    SavedData.GridData.Add(new GridRowData
+                    {
+                        PackageQuantity = qty,
+                        LotNumber = lot
                     });
                 }
             }
@@ -129,13 +112,12 @@ public partial class Form1 : Form
         MessageBox.Show($"Đã lưu dữ liệu:\n{SavedData}", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         // Tự động điền vào Mock_Tomato (tuỳ chọn)
-        if (MessageBox.Show("Bạn có muốn tự động điền dữ liệu vào Mock_Tomato?", 
+        if (MessageBox.Show("Bạn có muốn tự động điền dữ liệu vào Mock_Tomato?",
             "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
         {
             try
             {
                 string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "automation_config.json");
-                string appPath = @"D:\Quang-Anh\2_Personal\Automation_FlaUI\mock_tomato\Mock_Tomato\bin\Debug\net10.0-windows\Mock_Tomato.exe";
 
                 // Hiển thị cửa sổ console để xem log
                 AllocConsole();
@@ -212,6 +194,87 @@ public partial class Form1 : Form
         }
     }
 
+    private void FindByIdAndHighlight()
+    {
+        var id = tbFindById.Text.Trim();
+        if (string.IsNullOrEmpty(id))
+        {
+            MessageBox.Show(this, "Vui lòng nhập AutomationId.", "Thiếu dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            tbFindById.Focus();
+            return;
+        }
+
+        try
+        {
+            string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "automation_config.json");
+
+            using var highlighter = new ElementHighlighter(configPath, appPath);
+            var result = highlighter.CheckAndHighlight(CheckTarget.FindById, id);
+
+            ApplyButtonFeedback(btnFindById, result);
+        }
+        catch (Exception ex)
+        {
+            BringCurrentAppToFront();
+            MessageBox.Show(this, $"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void CheckAndHighlight(CheckTarget target, Button button)
+    {
+        try
+        {
+            string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "automation_config.json");
+
+            using var highlighter = new ElementHighlighter(configPath, appPath);
+            var result = highlighter.CheckAndHighlight(target);
+
+            ApplyButtonFeedback(button, result);
+        }
+        catch (Exception ex)
+        {
+            BringCurrentAppToFront();
+            MessageBox.Show(this, $"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void ApplyButtonFeedback(Button button, HighlightResult result)
+    {
+        var originalColor = button.BackColor;
+        var originalText = button.Text;
+
+        if (result.Found)
+        {
+            button.BackColor = Color.LightGreen;
+            button.Text = "✓ OK";
+
+            if (result.Message.Contains("⚠️"))
+            {
+                button.BackColor = Color.LightYellow;
+                button.Text = "⚠ Dup";
+                BringCurrentAppToFront();
+                MessageBox.Show(this, result.Message, "Trùng AutomationId", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        else
+        {
+            button.BackColor = Color.LightCoral;
+            button.Text = "✗ Fail";
+            BringCurrentAppToFront();
+            MessageBox.Show(this, result.Message, "Không tìm thấy", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        var resetTimer = new System.Windows.Forms.Timer { Interval = 3000 };
+        resetTimer.Tick += (s, e) =>
+        {
+            button.BackColor = originalColor;
+            button.Text = originalText;
+            resetTimer.Stop();
+            resetTimer.Dispose();
+        };
+        resetTimer.Start();
+    }
+
     private bool ValidateInputs()
     {
         if (string.IsNullOrWhiteSpace(tbWono.Text))
@@ -229,4 +292,39 @@ public partial class Form1 : Form
 
         return true;
     }
+
+    private async void btnFindTest_Click(object sender, EventArgs e)
+    {
+        var name = tbFindTest.Text.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            MessageBox.Show(this, "Vui lòng nhập tên label.", "Thiếu dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            tbFindTest.Focus();
+            return;
+        }
+
+        btnFindTest.Enabled = false;
+        try
+        {
+            string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "automation_config.json");
+
+            var result = await Task.Run(() =>
+            {
+                using var highlighter = new ElementHighlighter(configPath, appPath);
+                return highlighter.HighlightEditsByName(name);
+            });
+
+            ApplyButtonFeedback(btnFindTest, result);
+        }
+        catch (Exception ex)
+        {
+            BringCurrentAppToFront();
+            MessageBox.Show(this, $"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            btnFindTest.Enabled = true;
+        }
+    }
+
 }
